@@ -9,9 +9,6 @@ Created on Wed Feb 28 15:37:15 2018
 ###Boundary Condition Function###
 
 #################################
-### Global variables 
-
-#################################
 import numpy as np
 import math as mth
 
