@@ -1,0 +1,12 @@
+Double Null Algorithm-Evolution.ipynb creates numpy arrays for other codes to read (e.g. Numerical Analytic Comparsion.ipynb)
+
+Double Null Algorithm-Complete.ipynb solves the spacetime and has its own analyzing code 
+
+Both Analytical Solution codes simply solve for and display their respective spacetimes
+
+Numerical Analytic Comparison.ipynb takes the numpy arrays from either of the Double Null codes and compares them with their analytical solution
+
+
+Double_Null_utils.py contains the functions that the Double Null codes use
+
+Boundary_Functions.py contains the functions that the Analytical codes use
