@@ -14,12 +14,14 @@ import math as mth
 
 def boundary(scal,Es,bdytype,Nu,Nv,ru0,dr0v,du0,vmax,M0,Q,scalarfield):
     
-    rnp=np.zeros((Nu*scal*Es,Nv*scal*Es))
-    phinp=np.zeros((Nu*scal*Es,Nv*scal*Es))
-    signp=np.zeros((Nu*scal*Es,Nv*scal*Es))
-    #drnp=np.zeros((Nu*scal*Es,Nv*scal*Es))
-    #dphinp=np.zeros((Nu*scal*Es,Nv*scal*Es))
-    #dsignp=np.zeros((Nu*scal*Es,Nv*scal*Es))
+    rnpu=np.zeros((Nu*scal*Es))
+    rnpv=np.zeros((Nv*scal*Es))
+    
+    signpu=np.zeros((Nu*scal*Es))
+    signpv=np.zeros((Nv*scal*Es))
+    
+    phinpu=np.zeros((Nu*scal*Es))
+    phinpv=np.zeros((Nv*scal*Es))
     
     drnpu=np.zeros((Nu*scal*Es))
     drnpv=np.zeros((Nv*scal*Es))
@@ -32,14 +34,15 @@ def boundary(scal,Es,bdytype,Nu,Nv,ru0,dr0v,du0,vmax,M0,Q,scalarfield):
     
     scalf=float(scal)
 
-    rnp[0][0]=ru0 
+    rnpu[0]=ru0
+    rnpv[0]=ru0 
     drnpv[0]=dr0v
     
     dt=du0/(scalf*Es)
     
     if scalarfield==True:
         A=.115
-        #v=1.0
+      
         v1=1.0
         v2=7.0
         v1n=int(v1*(Nv*scal*Es)/vmax)
@@ -48,57 +51,65 @@ def boundary(scal,Es,bdytype,Nu,Nv,ru0,dr0v,du0,vmax,M0,Q,scalarfield):
         
         for i in range(0,Nu*scal*Es):
             #dsignpu[i]=0.0
-            phinp[i][0]=0.0
+            phinpu[i]=0.0
             dphinpu[i]=0.0
         for i in range(v1n,v2n):
                 #dsignpv[i]=0.0
             v=i/(Nv*scal*Es)*vmax
             dphinpv[i]=192*A*(v-v1)**2.0*(v-v2)**2.0*(-2*v+v1+v2)/(v1-v2)**6.0
-            phinp[0][i]=A*64*(v-v1)**3.0*(v2-v)**3.0/(v2-v1)**6.0
+            phinpv[i]=A*64*(v-v1)**3.0*(v2-v)**3.0/(v2-v1)**6.0
 
-    if bdytype=="stan":
+    if bdytype=="stan" or bdytype=="max" or bdytype=="hor":
         sigu0=0.0
         sigv0=0.0
         dsignpu[0]=0.0
         
         drnpu[0]=-mth.exp(sigu0)/(4.0*dr0v)*(Q**2.0/ru0**2.0-2*M0/ru0+1.0)
     
-        dsignpv[0]=dsignpu[0]
+        dsignpu[0]=dsignpu[0]
         
         
-        for i in range(0,Nv*scal*Es-1):
-            dsignpv[i]=0.0
-            rnp[0][i+1]=rnp[0][i]+dt*drnpv[i]
-            drnpv[i+1]=drnpv[i]+dt*(drnpv[i]*dsignpv[i]-rnp[0][i]*dphinpv[i]**2.0)
-            signp[0][i]=sigv0
+        for j in range(0,Nv*scal*Es-1):
+            dsignpv[j]=0.0
+            if rnpv[j]+dt*drnpv[j]>0.0:
+                rnpv[j+1]=rnpv[j]+dt*drnpv[j]
+                drnpv[j+1]=drnpv[j]+dt*(drnpv[j]*dsignpv[j]-rnpv[j]*dphinpv[j]**2.0)
+                print(dphinpv[j])
+                #signpv[i]=sigv0
+            else:
+                break
         
         for i in range(0,Nu*scal*Es-1):
             dsignpu[i]=0.0
-            rnp[i+1][0]=rnp[i][0]+dt*drnpu[i]
-            drnpu[i+1]=drnpu[i]+dt*(drnpu[i]*dsignpu[i]-rnp[i][0]*dphinpu[i]**2.0)
-            signp[i][0]=sigu0
+            if rnpu[i]+dt*drnpu[i]>0.0:
+                rnpu[i+1]=rnpu[i]+dt*drnpu[i]
+                drnpu[i+1]=drnpu[i]+dt*(drnpu[i]*dsignpu[i]-rnpu[i]*dphinpu[i]**2.0)
+                #signpu[i]=sigu0
+            else:
+                break
+                
             
-    elif bdytype=="max" or bdytype=="hor":
-        sigu0=0.0
-        sigv0=0.0
+    #elif bdytype=="max" or bdytype=="hor":
+        #sigu0=0.0
+        #sigv0=0.0
         
-        signp[0][0]=sigu0
-        drnpu[0]=-mth.exp(sigu0)/(4.0*dr0v)*(Q**2.0/ru0**2.0-2*M0/ru0+1.0)
-        dsignpv[0]=0.0
-        dsignpu[0]=0.0
+        #signpu[0]=sigu0
+        #drnpu[0]=-mth.exp(sigu0)/(4.0*dr0v)*(Q**2.0/ru0**2.0-2*M0/ru0+1.0)
+        #dsignpv[0]=0.0
+        #dsignpu[0]=0.0
         
         
-        for i in range(0,Nv*scal*Es-1):
-            dsignpv[i+1]=dsignpv[i]
-            signp[0][i+1]=dsignpv[i]*dt+signp[0][i]
-            rnp[0][i+1]=rnp[0][i]+dt*drnpv[i]
-            drnpv[i+1]=drnpv[i]+dt*(drnpv[i]*dsignpv[i]-rnp[0][i]*dphinpv[i]**2.0)
+        #for i in range(0,Nv*scal*Es-1):
+            #dsignpv[i+1]=dsignpv[i]
+            #signp[0][i+1]=dsignpv[i]*dt+signp[0][i]
+            #rnp[0][i+1]=rnp[0][i]+dt*drnpv[i]
+            #drnpv[i+1]=drnpv[i]+dt*(drnpv[i]*dsignpv[i]-rnp[0][i]*dphinpv[i]**2.0)
             
-        for i in range(0,Nu*scal*Es-1):
-            dsignpu[i+1]=dsignpu[i]
-            signp[i+1][0]=dsignpu[i+1]*dt+signp[i][0]
-            rnp[i+1][0]=rnp[i][0]+dt*drnpu[i]
-            drnpu[i+1]=drnpu[i]+dt*(drnpu[i]*dsignpu[i]-rnp[i][0]*dphinpu[i]**2.0)
+        #for i in range(0,Nu*scal*Es-1):
+            #dsignpu[i+1]=dsignpu[i]
+            #signp[i+1][0]=dsignpu[i+1]*dt+signp[i][0]
+            #rnp[i+1][0]=rnp[i][0]+dt*drnpu[i]
+            #drnpu[i+1]=drnpu[i]+dt*(drnpu[i]*dsignpu[i]-rnp[i][0]*dphinpu[i]**2.0)
             
     
     elif bdytype=="edd":
@@ -117,21 +128,33 @@ def boundary(scal,Es,bdytype,Nu,Nv,ru0,dr0v,du0,vmax,M0,Q,scalarfield):
         for i in range(0,Nv*scal*Es-1):
             rnp[0][i+1]=rnp[0][i]+dt*drnpv[i]
             drnpv[i+1]=drnpv[i]+dt*(drnpv[i]*dsignpv[i]-rnp[0][i]*dphinpv[i]**2.0)
+            
         
     
         
            
-    rnp=rnp[::scal,::scal]
-    signp=signp[::scal,::scal]
-    phinp=phinp[::scal,::scal]
-    dphinpu=dphinpu[::scal]  
-    dphinpv=dphinpv[::scal]
-    dsignpu=dsignpu[::scal]
-    dsignpv=dsignpv[::scal]
-    drnpu=drnpu[::scal]
-    drnpv=drnpv[::scal]
+    rnpu=rnpu[::scal]
+    rnpv=rnpv[::scal]
+    signpu=signpu[::scal]
+    signpv=signpv[::scal]
+    phinpu=phinpu[::scal]
+    phinpv=phinpv[::scal]
+    #dphinpu=dphinpu[::scal]  
+    #dphinpv=dphinpv[::scal]
+    #dsignpu=dsignpu[::scal]
+    #dsignpv=dsignpv[::scal]
+    #drnpu=drnpu[::scal]
+    #drnpv=drnpv[::scal]
     
-    return (rnp, signp, phinp, dsignpu,dphinpu)
+    
+    
+    drnpu=None
+    drnpv=None
+    dsignpu=None
+    dsignpv=None
+    dphinpu=None
+    dphinpv=None
+    return (rnpu, rnpv, signpu, signpv, phinpu, phinpv) #dphinpu)#dsignpu, dphinpu)
     
 #############################################
 ###Defining Propagation Algorithm/Function###
@@ -174,11 +197,12 @@ def x4giver(un,vn,Es,k,du00,rnpf,phinpf,signpf,Q):
         dphiu0=(phi3-phi1+phi4-phi2)/(2.0*du0)
         dphiv0=(phi2-phi1+phi4-phi3)/(2.0*dv0)
 
-        m=(1.0+4.0*mth.exp(-sig0)*dru0*drv0)*r0/2.0+(Q**2.0)/(2.0*r0)
-
         sig4=(sig3+sig2-sig1)+du0*dv0*(2.0*dru0*drv0/(r0)**2.0+mth.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2*dphiu0*dphiv0)
         #sig4=(sig3+sig2-sig1)+du0*dv0*(mth.exp(sig0)*(m/r0**3.0-3*Q**2/(2*r0**4.0))-2*dphiu0*dphiv0)
+        
+        sig0=(sig1+sig2+sig3+sig4)/4.0
     
+        m=(1.0+4.0*mth.exp(-sig0)*dru0*drv0)*r0/2.0+(Q**2.0)/(2.0*r0)
         
         dsigu0=(sig3-sig1+sig4-sig2)/(2.0*du0)
         #dsigv0=(sig2-sig1+sig4-sig3)/(2.0*dv0)
