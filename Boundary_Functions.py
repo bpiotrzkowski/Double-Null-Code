@@ -39,9 +39,10 @@ def rbounschinv(m,ru0,dr0,r):
 
 def drbounsch(m,ru0,dr0,x):
     C1=-dr0*mth.exp(ru0/(2*m))*m*(2*m-ru0)*(1+lambertw(-mth.exp(-1+ru0/(2*m))*(2*m-ru0)/(2*m)))/lambertw(-mth.exp(-1+ru0/(2*m))*(2*m-ru0)/(2*m))
-    #C2=-2*mth.exp(ru0/(2*m))*m*(2*m-ru0)/C1
+    
     C2=2*lambertw(-mth.exp(-1+ru0/(2*m))*(2*m-ru0)/(2*m))/(dr0*(1+lambertw(-mth.exp(-1+ru0/(2*m))*(2*m-ru0)/(2*m))))
     drdx=2*m*lambertw(C1*(x+C2)/(4*mth.exp(1)*m**2))/((x+C2)*(1+lambertw(C1*(x+C2)/(4*mth.exp(1)*m**2))))*(32*m**(3.0)/ru0*mth.exp(-ru0/(2.0*m)))**(-1.0)
+    #drdx=C1*mth.exp(-ru0/(2*m))/ru0*(32*m**(3.0)/ru0*mth.exp(-ru0/(2.0*m)))**(-1.0)
     return drdx.real
 
 
@@ -95,6 +96,10 @@ def dr2rn(m,Q,dru,r):
     drv=-1/4/(dru)*(1-2*m/r+Q**2/r**2)
     return drv
 
+def dr3rn(m,Q,dru,r,sig): 
+    drv=-1/4/(dru)*(1-2*m/r+Q**2/r**2)*mth.exp(sig)
+    return drv
+
 #def Gamma(s,x):
     #def real_func(t,s):
         #return scipy.real(t**(s-1)*mth.exp(-t))
@@ -136,7 +141,7 @@ def drbounrn(r,u,m,Q,ru0,dr0):
     kplus=(rplus-rminus)/(2*(rplus)**2)
     kminus=abs((rminus-rplus)/(2*(rminus)**2))
         
-    return 1/r**2*dr0*mth.exp(2*kplus*(ru0-r))*(r-rminus)**(1+kplus/kminus)*(ru0-rminus)**(-1-kplus/kminus)*ru0**2
+    return 1/r**2*dr0*mth.exp(2*kplus*(ru0-r))*(r-rminus)**(1+kplus/kminus)*(ru0-rminus)**(-1-kplus/kminus)*ru0**2#*mth.exp(sig)
 
     
 def rbounrn(m,Q,ru0,dr0,u):
@@ -169,11 +174,11 @@ def rbounrninv(r,m,Q,ru0,dr0):
 
     return x.real
     
-def rbounrninv2(r,m,Q,ru0,dr0,x):   
+#def rbounrninv2(r,m,Q,ru0,dr0,x):   
 
-    return rbounrninv(r,m,Q,ru0,dr0)-x
+    #return rbounrninv(r,m,Q,ru0,dr0)-x
     
-def rrn(m,Q,ru0,dr0,u,v,i):
+def rrn(m,Q,ru0,dr0,sig,u,v,i):
         
     #rplus=m+(m**2-Q**2)**(0.5)
     #rminus=m-(m**2-Q**2)**(0.5)
@@ -182,12 +187,27 @@ def rrn(m,Q,ru0,dr0,u,v,i):
       
     try:
         ru=rbounrn(m,Q,ru0,drrn(m,Q,dr0,ru0),u)[i]
-        ru=float(ru)
-        #print(ru)
-        drdu=drbounrn(ru,u,m,Q,ru0,dr2rn(m,Q,dr0,ru0))
-        drdu=float(drdu)
-        #print(drdu)
-        rv=rbounrn(m,Q,ru,drrn(m,Q,drdu,ru),v)
+        ru=float(ru.real)
+        
+        drdu=drbounrn(ru,u,m,Q,ru0,dr2rn(m,Q,dr0,ru0))#*mth.exp(-sig)
+        drdu=float(drdu.real)
+        
+        rv=rbounrn(m,Q,ru,drrn(m,Q,drdu,ru)*mth.exp(0),v)
+        #print(rv)
+        if np.isnan(rv).any():
+            i2=0
+            Fillrest=False
+            if np.isnan(rv[0]):
+                lenrv=len(rv)
+                rv=np.empty((lenrv))*np.nan
+            while i2 <len(rv):
+                if np.isnan(rv[i2]) or Fillrest==True:
+                    
+                    #rv[i2+1]=np.nan
+                    rv[i2]=rv[i2-1]
+                    Fillrest=True
+                i2+=1
+            
         
   
         
