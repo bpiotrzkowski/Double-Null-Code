@@ -1,4 +1,4 @@
-Double Null Algorithm-Evolution.ipynb creates numpy arrays for other codes to read (e.g. Numerical Analytic Comparsion.ipynb)
+Double Null Algorithm-Evolution.ipynb creates numpy arrays for other codes to read (e.g. Numerical Analytic Comparsion.ipynb, Mass-Scalar Field Analyzer.ipynb)
 
 Double Null Algorithm-Complete.ipynb solves the spacetime and has its own analyzing code 
 
@@ -6,10 +6,12 @@ Both Analytical Solution codes simply solve for and display their respective spa
 
 Numerical Analytic Comparison.ipynb takes the numpy arrays from either of the Double Null codes and compares them with their analytical solution
 
+Mass-Scalar Field Analyzer.ipynb similarly takes numpy arrays and displays features concerning mass and scalar fields, assuming the original spacetime had a non-zero scalar field
+
 
 Double_Null_utils.py contains the functions that the Double Null codes use
 
 Boundary_Functions.py contains the functions that the Analytical codes use
 
 
-NOTE: Some of these are legacy codes! Double Null Algorithm-Evolution-Grid Refinement.ipynb is the most up-to-date evolution codes (has grid refinment, cosm. constant, etc.)
+NOTE: Some of these are legacy codes! Double Null Algorithm-Evolution-Grid Refinement.ipynb is the most up-to-date evolution code (has grid refinment, cosm. constant, etc.)
