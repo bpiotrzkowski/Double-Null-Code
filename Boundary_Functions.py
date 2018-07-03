@@ -5,7 +5,7 @@ import scipy.special.lambertw as lambertw
 from scipy.special import gammainc as gamma
 
 import scipy
-from pynverse import inversefunc
+#from pynverse import inversefunc
 from mpmath import gammainc as gamma2
 from scipy.special import gamma as gamma
 from scipy.special import gammaincc as gamma3
