@@ -10,3 +10,6 @@ Numerical Analytic Comparison.ipynb takes the numpy arrays from either of the Do
 Double_Null_utils.py contains the functions that the Double Null codes use
 
 Boundary_Functions.py contains the functions that the Analytical codes use
+
+
+NOTE: Some of these are legacy codes! Double Null Algorithm-Evolution-Grid Refinement.ipynb is the most up-to-date evolution codes (has grid refinment, cosm. constant, etc.)
