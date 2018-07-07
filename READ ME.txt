@@ -1,10 +1,11 @@
 Double Null Algorithm-Evolution.ipynb creates numpy arrays or hd5 files, depending on which version is chosen, for other codes to read (e.g. Numerical Analytic Comparsion.ipynb)
+Note: The hd5 version is much faster and writes to the hard drive in .h5 files instead in order to free up RAM.
 
 Both Analytical Solution codes simply solve for and display their respective spacetimes
 
-Numerical Analytic Comparison.ipynb takes the arrays from either of the Double Null codes and compares them with their analytical solution
+Numerical Analytic Comparison.ipynb takes array from the Evolution codes and compares them with their analytical solution (works for Phi=0 cases)
 
-Mass-Scalar Field Analyzer.ipynb makes plots relevant to the scalar field and mass parameter
+Mass-Scalar Field Analyzer.ipynb takes array from the Evolution codes and makes plots relevant to the scalar field and mass parameter
 
 -------
 
