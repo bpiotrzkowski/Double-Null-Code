@@ -43,8 +43,9 @@ def boundary(scal,Es,bdytype,Nu,Nv,ru0,dr0v,du0,vmax,M0,Q,scalarfield):
     dt=du0/(scalf*Es)
     
     if scalarfield==True:
-        A=.115
+        #A=.115
         #A=10.
+        A=0.01
       
         v1=1.0
         v2=7.0
@@ -439,9 +440,8 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
     m0=(m2+m3)/2.0
     
     try:
-        r4i=(r3+r2-r1)-(r3-r1)*(r2-r1)/(r0)-du0*dv0*np.exp(sig0)/(4*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
-        
-        #r4i=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
+        #r4i=(r3+r2-r1)-(r3-r1)*(r2-r1)/(r0)-du0*dv0*np.exp(sig0)/(4*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
+        r4i=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
         
         r0=(r1+r2+r3+r4i)/4.0
         dru0=(r3-r1+r4i-r2)/(2.0*du0)
@@ -451,13 +451,13 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
         dphiu0=(phi3-phi1+phi4i-phi2)/(2.0*du0)
         dphiv0=(phi2-phi1+phi4i-phi3)/(2.0*dv0)
         
-        sig4i=(sig3+sig2-sig1)+2.0*(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2.0*dphiu0*dphiv0)
-        #sig4i=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
+        #sig4i=(sig3+sig2-sig1)+2.0*(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2.0*dphiu0*dphiv0)
+        sig4i=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
         
         sig0=(sig1+sig2+sig3+sig4i)/4.0
            
-        r4=(r3+r2-r1)-(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*r0)-du0*dv0*np.exp(sig0)/(4.0*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
-        #r4=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
+        #r4=(r3+r2-r1)-(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*r0)-du0*dv0*np.exp(sig0)/(4.0*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
+        r4=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
         
         
         r0=(r1+r2+r3+r4)/4.0
@@ -470,18 +470,18 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
         dphiu0=(phi3-phi1+phi4-phi2)/(2.0*du0)
         dphiv0=(phi2-phi1+phi4-phi3)/(2.0*dv0)
 
-        sig4=(sig3+sig2-sig1)+2.0*(r3-r1+r4-r2)*(r2-r1+r4-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2.0*dphiu0*dphiv0)
-        #sig4=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
+        #sig4=(sig3+sig2-sig1)+2.0*(r3-r1+r4-r2)*(r2-r1+r4-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2.0*dphiu0*dphiv0)
+        sig4=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
             
            
         sig0=(sig1+sig2+sig3+sig4)/4.0
         
+         
         
+        #m4=(m3+m2-m1)+du0*dv0*(2*r0**3*np.exp(-sig0)*(dphiu0*dphiv0)**2.0-r0*(1-2*m0/r0+Q**2/r0**2)*dphiu0*dphiv0)
         
-        #m4=(m3+m2-m1)+du0*dv0*(2*r0**3*np.exp(-sig0)*(dphiu0*dphiu0)**2.0-r0*(1-2*m0/r0+Q**2/r0**2)*dphiu0*dphiu0)
-        
-        dru0=(r3-r1)/du0-(r3-r1)*(r2-r1)/(2*r0*du0)-dv0*np.exp(sig0)/(8*r0)*(1-Q**2/r0**2)
-        drv0=(r2-r1)/dv0-(r3-r1)*(r2-r1)/(2*r0*dv0)-du0*np.exp(sig0)/(8*r0)*(1-Q**2/r0**2)
+        #dru0=(r3-r1)/du0-(r3-r1)*(r2-r1)/(2*r0*du0)-dv0*np.exp(sig0)/(8*r0)*(1-Q**2/r0**2)
+        #drv0=(r2-r1)/dv0-(r3-r1)*(r2-r1)/(2*r0*dv0)-du0*np.exp(sig0)/(8*r0)*(1-Q**2/r0**2)
         
         m4=(1.0+4.0*mth.exp(-sig0)*dru0*drv0)*r0/2.0+(Q**2.0)/(2.0*r0)
         
