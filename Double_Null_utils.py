@@ -13,6 +13,7 @@ import numpy as np
 import math as mth
 #from mpmath import *
 from decimal import *
+from scipy import interpolate
 
 def boundary(scal,Es,bdytype,Nu,Nv,ru0,dr0v,du0,vmax,M0,Q,scalarfield):
     
@@ -297,7 +298,135 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,datatype
     dphinpu=None
     dphinpv=None
     return (rnpv, signpv, phinpv) #dphinpu)#dsignpu, dphinpu)    
+
+##################################################################
+
+def boundaryu(scal,bdytype,Nu,ru0,dr0u,du0,umax,M0,Q,Lambda,scalarfield,datatype):
     
+    
+    if datatype==object:
+        rnpu=np.zeros((Nu*scal),dtype=datatype)*np.nan
+        signpu=np.zeros((Nu*scal),dtype=datatype)*Decimal(0)
+        phinpu=np.zeros((Nu*scal),dtype=datatype)*Decimal(0)
+        drnpu=np.zeros((Nu*scal),dtype=datatype)*Decimal(0)
+        dsignpu=np.zeros((Nu*scal),dtype=datatype)*Decimal(0)
+        dphinpu=np.zeros((Nu*scal),dtype=datatype)*Decimal(0)
+        scald=Decimal(scal)
+        dt=du0/(scald)
+    else:
+        rnpu=np.zeros((Nu*scal),dtype=datatype)*np.nan
+        signpu=np.zeros((Nu*scal),dtype=datatype)
+        phinpu=np.zeros((Nu*scal),dtype=datatype)
+        drnpu=np.zeros((Nu*scal),dtype=datatype)
+        dsignpu=np.zeros((Nu*scal),dtype=datatype)
+        dphinpu=np.zeros((Nu*scal),dtype=datatype)
+        scalf=float(scal)
+        dt=du0/(scalf)
+    
+
+    
+    rnpu[0]=ru0 
+    drnpu[0]=dr0u
+    
+   
+    
+    #if scalarfield==True:
+        #A=.115
+      
+        #v1=1.0
+        #v2=7.0
+        #v1n=int(v1*(Nv*scal)/vmax)
+        #v2n=int(v2*(Nv*scal)/vmax)
+        
+       
+        #for i in range(v1n,v2n):
+               
+            #v=i/(Nv*scal)*vmax
+            #dphinpv[i]=192*A*(v-v1)**2.0*(v-v2)**2.0*(-2*v+v1+v2)/(v1-v2)**6.0
+            #phinpv[i]=A*64*(v-v1)**3.0*(v2-v)**3.0/(v2-v1)**6.0
+
+    if bdytype=="stan" or bdytype=="max" or bdytype=="hor":
+    
+        sigu0=0.0
+        if datatype==object:
+            sigu0=Decimal(0)
+        
+        #dsignpv[0]=0.0
+        
+        
+        for i in range(0,Nu*scal-1):
+            dsignpu[i]=0.0
+            if rnpu[i]+dt*drnpu[i]>0.0:
+                rnpu[i+1]=rnpu[i]+dt*drnpu[i]
+                drnpu[i+1]=drnpu[i]
+                #print(dphinpv[j])
+                signpu[i]=sigu0
+            else:
+                break
+        
+        print("Using Standard Coordinates Along V") 
+            
+    #######
+    elif bdytype=="edd":
+        
+        signpu[0]=mth.log(1.0-2.0*M0/ru0+Q**2.0/ru0**2.0)
+        
+        dsignpu[0]=0.0
+        drnpu[0]=dr0u
+        
+      
+        for i in range(0,Nu*scal-1):
+            dsignpu[i+1]=dsignpu[i]
+            rnpu[i+1]=rnpu[i]+dt*drnpu[i]
+            signpu[i+1]=signpu[i]+dt*dsignpu[i]
+            drnpu[i+1]=drnpu[i]+dt*(drnpu[i]*dsignpu[i]-rnpu[i]*dphinpu[i]**2.0)
+        print("Using Eddington Coordinates Along U")  
+        
+    ########  
+    elif bdytype=="fulledd":
+        
+        signpu[0]=np.log(1.0-2.0*M0/ru0+Q**2.0/ru0**2.0-Lambda*ru0**2/3)
+        
+        dsignpvu[0]=2*(3*Q**2-3*M0*ru0+ru0**4*Lambda)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+ru0**3*Lambda)))*dr0u
+        drnpu[0]=dr0u
+        
+      
+        for i in range(0,Nu*scal-1):
+            rnpu[i+1]=rnpu[i]+dt*drnpu[i]
+            #signpv[j+1]=signpv[j]+dt*dsignpv[j]
+            signpu[i+1]=np.log(1.0-2.0*M0/rnpu[i+1]+Q**2.0/rnpu[i+1]**2.0)
+            drnpu[i+1]=drnpu[i]+dt*(drnpu[i]*dsignpu[i]-rnpu[i]*dphinpu[i]**2.0)  
+            dsignpu[i+1]=2*(3*Q**2-3*M0*rnpu[i+1]+rnpu[i+1]**4*Lambda)/(rnpu[i+1]*(-3*Q**2+rnpu[i+1]*(6*M0-3*rnpu[i+1]+rnpu[i+1]**3*Lambda)))*drnpu[i+1]
+            #print(dsignpv[j+1])
+            
+            
+        print("Using Full Eddington Coordinates")
+        
+           
+    
+    rnpu=rnpu[::scal]
+    
+    signpv=signpu[::scal]
+    
+    phinpu=phinpu[::scal]
+    #dphinpu=dphinpu[::scal]  
+    #dphinpv=dphinpv[::scal]
+    #dsignpu=dsignpu[::scal]
+    #dsignpv=dsignpv[::scal]
+    #drnpu=drnpu[::scal]
+    #drnpv=drnpv[::scal]
+    
+    
+    
+    drnpu=None
+    #drnpv=None
+    dsignpu=None
+    #dsignpv=None
+    dphinpu=None
+    #dphinpv=None
+    return (rnpu, signpu, phinpu) #dphinpu)#dsignpu, dphinpu)    
+        
+   
 #############################################
 ###Defining Propagation Algorithm/Function###
 def x4giver(un,vn,Es,k,du00,rnpf,phinpf,signpf,Q):
@@ -432,46 +561,46 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
     
     
     r0=(r2+r3)/2.0
-    dru0=(r3-r1)/du0
-    drv0=(r2-r1)/dv0
-    dphiu0=(phi3-phi1)/du0
-    dphiv0=(phi2-phi1)/dv0
+    dru0=(r3-r1)#/du0
+    drv0=(r2-r1)#/dv0
+    dphiu0=(phi3-phi1)#/du0
+    dphiv0=(phi2-phi1)#/dv0
     sig0=(sig2+sig3)/2.0
     m0=(m2+m3)/2.0
     
     try:
-        #r4i=(r3+r2-r1)-(r3-r1)*(r2-r1)/(r0)-du0*dv0*np.exp(sig0)/(4*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
-        r4i=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
+        r4i=(r3+r2-r1)-(r3-r1)*(r2-r1)/(r0)-du0*dv0*np.exp(sig0)/(4*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
+        #r4i=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
         
         r0=(r1+r2+r3+r4i)/4.0
-        dru0=(r3-r1+r4i-r2)/(2.0*du0)
-        drv0=(r2-r1+r4i-r3)/(2.0*dv0)
+        dru0=(r3-r1+r4i-r2)/(2.0)#*du0)
+        drv0=(r2-r1+r4i-r3)/(2.0)#*dv0)
         
-        phi4i=(phi3+phi2-phi1)-du0*dv0/r0*(dru0*(phi2-phi1)/dv0+drv0*(phi3-phi1)/du0)
-        dphiu0=(phi3-phi1+phi4i-phi2)/(2.0*du0)
-        dphiv0=(phi2-phi1+phi4i-phi3)/(2.0*dv0)
+        phi4i=(phi3+phi2-phi1)-1.0/r0*(dru0*(phi2-phi1)+drv0*(phi3-phi1))
+        dphiu0=(phi3-phi1+phi4i-phi2)/(2.0)#*du0)
+        dphiv0=(phi2-phi1+phi4i-phi3)/(2.0)#*dv0)
         
-        #sig4i=(sig3+sig2-sig1)+2.0*(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2.0*dphiu0*dphiv0)
-        sig4i=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
+        sig4i=(sig3+sig2-sig1)+2.0*(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0)))-2.0*dphiu0*dphiv0
+        #sig4i=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
         
         sig0=(sig1+sig2+sig3+sig4i)/4.0
            
-        #r4=(r3+r2-r1)-(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*r0)-du0*dv0*np.exp(sig0)/(4.0*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
-        r4=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
+        r4=(r3+r2-r1)-(r3-r1+r4i-r2)*(r2-r1+r4i-r3)/(4.0*r0)-du0*dv0*np.exp(sig0)/(4.0*r0)*(1.0-(Q**2.0)/(r0**2.0)-Lambda*r0**2.0)
+        #r4=(r3+r2-r1)+du0*dv0*np.exp(sig0)*(Q**2.0-M0*r0)/(2.0*r0**3.0)
         
         
         r0=(r1+r2+r3+r4)/4.0
-        dru0=(r3-r1+r4-r2)/(2.0*du0)
-        drv0=(r2-r1+r4-r3)/(2.0*dv0)
+        dru0=(r3-r1+r4-r2)/(2.0)#*du0)
+        drv0=(r2-r1+r4-r3)/(2.0)#*dv0)
         
         
-        phi4=(phi3+phi2-phi1)-du0*dv0/r0*(dru0*(phi2-phi1+phi4i-phi3)/(2*dv0)+drv0*(phi3-phi1+phi4i-phi2)/(2*du0))
+        phi4=(phi3+phi2-phi1)-1/r0*(dru0*(phi2-phi1+phi4i-phi3)/(2.0)+drv0*(phi3-phi1+phi4i-phi2)/(2.0))
     
-        dphiu0=(phi3-phi1+phi4-phi2)/(2.0*du0)
-        dphiv0=(phi2-phi1+phi4-phi3)/(2.0*dv0)
+        dphiu0=(phi3-phi1+phi4-phi2)/(2.0)#*du0)
+        dphiv0=(phi2-phi1+phi4-phi3)/(2.0)#*dv0)
 
-        #sig4=(sig3+sig2-sig1)+2.0*(r3-r1+r4-r2)*(r2-r1+r4-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0))-2.0*dphiu0*dphiv0)
-        sig4=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
+        sig4=(sig3+sig2-sig1)+2.0*(r3-r1+r4-r2)*(r2-r1+r4-r3)/(4.0*(r0)**2.0)+du0*dv0*(np.exp(sig0)/(2.0*r0**2.0)*(1.0-2.0*(Q**2.0)/(r0**2.0)))-2.0*dphiu0*dphiv0
+        #sig4=(sig3+sig2-sig1)+du0*dv0*np.exp(sig0)*(2.0*M0*r0-3.0*Q**2.0)/(2.0*r0**4.0)
             
            
         sig0=(sig1+sig2+sig3+sig4)/4.0
@@ -483,7 +612,7 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
         #dru0=(r3-r1)/du0-(r3-r1)*(r2-r1)/(2*r0*du0)-dv0*np.exp(sig0)/(8*r0)*(1-Q**2/r0**2)
         #drv0=(r2-r1)/dv0-(r3-r1)*(r2-r1)/(2*r0*dv0)-du0*np.exp(sig0)/(8*r0)*(1-Q**2/r0**2)
         
-        m4=(1.0+4.0*mth.exp(-sig0)*dru0*drv0)*r0/2.0+(Q**2.0)/(2.0*r0)
+        #m4=1.0#(1.0+4.0*mth.exp(-sig0)*dru0*drv0/(du0*dv0))*r0/2.0+(Q**2.0)/(2.0*r0)
         
         #dru0=(r3-r1)/du0
         #drv0=(r2-r1)/dv0
@@ -507,6 +636,7 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
         #exterm3=(du0*dv0/r0*(dru0*(phi2-phi1+phi4i-phi3)/(2*dv0)+drv0*(phi3-phi1+phi4i-phi2)/(2*du0))+1.0)-1.0
         
     except OverflowError or RuntimeWarning:
+        #print('du='+str(du0))
         
         r4i=np.nan
         r4=np.nan
@@ -522,9 +652,13 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
 
         sig4=np.nan
     
-        m=np.nan
+        m4=np.nan
     
         dsigu0=np.nan
+        
+        exterm1=np.nan
+        exterm2=np.nan
+        exterm3=np.nan
         #dsigv0=np.nan
     
         #druv=np.nan
@@ -546,15 +680,38 @@ def x4giveralt(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
 
         sig4=np.nan
     
-        m=np.nan
+        m4=np.nan
     
         dsigu0=np.nan
+        
+        exterm1=np.nan
+        exterm2=np.nan
+        exterm3=np.nan
         #dsigv0=np.nan
     
         #druv=np.nan
         #dphiuv=np.nan
         #dsiguv=np.nan
-    
+    try:
+        m4=(1.0+4.0*mth.exp(-sig0)*dru0*drv0/(du0*dv0))*r0/2.0+(Q**2.0)/(2.0*r0)
+        dru0=(r3-r1+r4-r2)/(2.0*du0)
+        drv0=(r2-r1+r4-r3)/(2.0*dv0)
+        dsigu0=(sig3-sig1+sig4-sig2)/(2.0*du0)
+        dsigv0=(sig2-sig1+sig4-sig3)/(2.0*dv0)
+        
+        exterm1=dru0
+        exterm2=drv0
+        exterm3=dsigu0
+    except:
+        m4=np.nan
+        dru0=np.nan
+        drv0=np.nan
+        dsigu0=np.nan
+        dsigv0=np.nan
+        
+        exterm1=dru0
+        exterm2=drv0
+        exterm3=dsigu0
     #mf=M0+min(abs(m-M0),abs(m2-M0),abs(m3-M0),abs(m4-M0))
     
     #answer=[r4,phi4,sig4,m,m2,m3,m4,dru0,dsigu0]
@@ -715,3 +872,17 @@ def x4giveraltd(un,vn,du0,dv0,rnpf,phinpf,signpf,massnpf,M0,Q,Lambda,datatype):
     answer=np.array([r4,phi4,sig4,m4,dru0,dsigu0,exterm1,exterm2,exterm3],dtype=datatype)
     
     return answer
+
+def interp(i,array,urange,du):
+    #array=array[0]
+    
+    #print(x,y)
+    try:
+        x=[urange[i-1],urange[i],urange[i+1],urange[i+2]]
+        y=[array[i-1],array[i],array[i+1],array[i+2]]
+        value=interpolate.interp1d(x,y,kind='cubic')(urange[i]+du/2)#+1/2*(urange[i+1]-urange[i]))
+    except:
+        print("Used Linear Interpolation")
+        y=[array[i],array[i+1]]
+        value=(y[0]+y[1])/2
+    return value
