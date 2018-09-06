@@ -17,7 +17,7 @@ from scipy import interpolate
 
 
 
-def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,datatype):
+def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,datatype):
     
     
     if datatype==object:
@@ -53,7 +53,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,datatype
    
     
     if scalarfield==True:
-        A=.115
+        #A=.115
         #A=.2
       
         v1=1.0
@@ -85,6 +85,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,datatype
         for j in range(0,Nv*scal-1):
             
             if rnpv[j]+dt*drnpv[j]>0.0:
+                ###Predictor###
                 signpv[j]=sigv0
                 rnpv[j+1]=rnpv[j]+dt*drnpv[j]
                 drnpv[j+1]=drnpv[j]+dt*Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])
@@ -92,7 +93,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,datatype
                 dphinpu[j+1]=dphinpu[j]+dt*Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j]) 
                 
                 dsignpu[j+1]=dsignpu[j]+dt*Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)        
-                            
+                ###Corrector###           
                 signpv[j]=sigv0
                 rnpv[j+1]=rnpv[j]+1/2*dt*(drnpv[j]+drnpv[j+1])
                 drnpv[j+1]=drnpv[j]+1/2*dt*(Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])+Coneq(drnpv[j+1],dsignpv[j+1],dphinpv[j+1],rnpv[j+1]))
