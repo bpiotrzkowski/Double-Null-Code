@@ -57,7 +57,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
         #A=.2
       
         v1=1.0
-        v2=7.0
+        v2=4.0
         v1n=int(v1*(Nv*scal)/vmax)
         v2n=int(v2*(Nv*scal)/vmax)
         
@@ -77,7 +77,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
         #dsignpv[0]=0.0
         
         dsignpv[:]=0.0
-        drnpu[0]=-1/(4*drnpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2)
+        drnpu[0]=-1/(4*drnpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
         dphinpu[0]=0.0
         dsignpu[0]=0.0
         
@@ -89,7 +89,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
                 signpv[j]=sigv0
                 rnpv[j+1]=rnpv[j]+dt*drnpv[j]
                 drnpv[j+1]=drnpv[j]+dt*Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])
-                drnpu[j+1]=drnpu[j]+dt*Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q)
+                drnpu[j+1]=drnpu[j]+dt*Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)
                 dphinpu[j+1]=dphinpu[j]+dt*Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j]) 
                 
                 dsignpu[j+1]=dsignpu[j]+dt*Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)        
@@ -97,7 +97,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
                 signpv[j]=sigv0
                 rnpv[j+1]=rnpv[j]+1/2*dt*(drnpv[j]+drnpv[j+1])
                 drnpv[j+1]=drnpv[j]+1/2*dt*(Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])+Coneq(drnpv[j+1],dsignpv[j+1],dphinpv[j+1],rnpv[j+1]))
-                drnpu[j+1]=drnpu[j]+1/2*dt*(Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q)+Rfunc(drnpv[j+1],drnpu[j+1],rnpv[j+1],signpv[j+1],Q))
+                drnpu[j+1]=drnpu[j]+1/2*dt*(Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)+Rfunc(drnpv[j+1],drnpu[j+1],rnpv[j+1],signpv[j+1],Q,Lambda))
                 dphinpu[j+1]=dphinpu[j]+1/2*dt*(Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j])+Phifunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1]))                     
                 
                 dsignpu[j+1]=dsignpu[j]+1/2*dt*(Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)+Sigfunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1],signpv[j+1],Q))
@@ -168,8 +168,8 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
 
 
 #########ODE functions###############
-def Rfunc(drnpvf,drnpuf,rnpf,signpf,Q):
-    return -drnpvf*drnpuf/rnpf-np.exp(signpf)/(4.0*rnpf)*(1.0-np.power((Q/rnpf),2.0))
+def Rfunc(drnpvf,drnpuf,rnpf,signpf,Q,Lambda):
+    return -drnpvf*drnpuf/rnpf-np.exp(signpf)/(4.0*rnpf)*(1.0-np.power((Q/rnpf),2.0)-Lambda*np.power(rnpf,2.0))
 
 def Sigfunc(drnpvf,drnpuf,dphinpuf,dphinpvf,rnpf,signpf,Q):
     return 2.0*drnpuf*drnpvf/np.power(rnpf,2.0)+np.exp(signpf)/(2.0*np.power(rnpf,2.0))*(1.0-2.0*np.power((Q/rnpf),2.0))-2.0*dphinpuf*dphinpvf
