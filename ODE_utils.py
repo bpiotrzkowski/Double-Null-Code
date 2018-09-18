@@ -42,6 +42,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
         drnpu=np.zeros((Nv*scal),dtype=datatype)*np.nan
         dsignpu=np.zeros((Nv*scal),dtype=datatype)*np.nan
         dphinpu=np.zeros((Nv*scal),dtype=datatype)#*np.nan
+        massnpv=np.zeros((Nv*scal),dtype=datatype)
         scalf=float(scal)
         dt=dv0/(scalf)
     
@@ -80,7 +81,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
         drnpu[0]=-1/(4*drnpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
         dphinpu[0]=0.0
         dsignpu[0]=0.0
-        
+        massnpv[0]=M0
         
         for j in range(0,Nv*scal-1):
             
@@ -102,6 +103,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
                 
                 dsignpu[j+1]=dsignpu[j]+1/2*dt*(Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)+Sigfunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1],signpv[j+1],Q))
                 
+                massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1])*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
             else:
                 break
         
@@ -154,7 +156,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
     dsignpv=dsignpv[::scal]
     drnpu=drnpu[::scal]
     drnpv=drnpv[::scal]
-    
+    massnpv=massnpv[::scal]
     
     
     #drnpu=None
@@ -163,7 +165,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
     #dsignpv=None
     #dphinpu=None
     #dphinpv=None
-    return (rnpv, signpv, phinpv,drnpv,dsignpv,dphinpv,drnpu,dsignpu,dphinpu) #dphinpu)#dsignpu, dphinpu)    
+    return (rnpv, signpv, phinpv,drnpv,dsignpv,dphinpv,drnpu,dsignpu,dphinpu,massnpv) #dphinpu)#dsignpu, dphinpu)    
 
 
 
