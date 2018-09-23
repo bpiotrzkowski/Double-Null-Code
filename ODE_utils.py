@@ -14,10 +14,21 @@ import math as mth
 #from mpmath import *
 from decimal import *
 from scipy import interpolate
+from scipy import optimize
 
+def rc(M,Q,Lambda):
+    def fr(r,M,Q,Lambda):
+        return 1-2*M/r+Q**2.0/r**2.0-Lambda*r**2.0/3.0
+    if Lambda>0 or Lambda<0:
+        sol = optimize.root(fr,[50.0],args=(M,Q,Lambda), method='hybr')
+        #rminus=sol.x[0]
+        #rplus=sol.x[1]
+        rcosm=sol.x[0]
+    else:
+        rcosm=np.inf
+    return rcosm
 
-
-def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,datatype):
+def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmtol,datatype):
     
     
     if datatype==object:
@@ -34,15 +45,15 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
         dt=dv0/(scald)
     else:
         rnpv=np.zeros((Nv*scal),dtype=datatype)*np.nan
-        signpv=np.zeros((Nv*scal),dtype=datatype)
-        phinpv=np.zeros((Nv*scal),dtype=datatype)
+        signpv=np.zeros((Nv*scal),dtype=datatype)*np.nan
+        phinpv=np.zeros((Nv*scal),dtype=datatype)#*np.nan
         drnpv=np.zeros((Nv*scal),dtype=datatype)*np.nan
         dsignpv=np.zeros((Nv*scal),dtype=datatype)*np.nan
         dphinpv=np.zeros((Nv*scal),dtype=datatype)#*np.nan
         drnpu=np.zeros((Nv*scal),dtype=datatype)*np.nan
         dsignpu=np.zeros((Nv*scal),dtype=datatype)*np.nan
-        dphinpu=np.zeros((Nv*scal),dtype=datatype)#*np.nan
-        massnpv=np.zeros((Nv*scal),dtype=datatype)
+        dphinpu=np.zeros((Nv*scal),dtype=datatype)*np.nan
+        massnpv=np.zeros((Nv*scal),dtype=datatype)*np.nan
         scalf=float(scal)
         dt=dv0/(scalf)
     
@@ -68,6 +79,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
             v=j/(Nv*scal)*vmax
             dphinpv[j]=192*A*(v-v1)**2.0*(v-v2)**2.0*(-2*v+v1+v2)/(v1-v2)**6.0
             phinpv[j]=A*64*(v-v1)**3.0*(v2-v)**3.0/(v2-v1)**6.0
+   
 
     if bdytype=="stan" or bdytype=="max" or bdytype=="hor":
     
@@ -80,33 +92,38 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
         dsignpv[:]=0.0
         drnpu[0]=-1/(4*drnpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
         dphinpu[0]=0.0
+        dphinpv[0]=0.0
         dsignpu[0]=0.0
+        signpv[0]=0.0
         massnpv[0]=M0
         
+        rcosm=rc(massnpv[0],Q,Lambda)
         for j in range(0,Nv*scal-1):
             
-            if rnpv[j]+dt*drnpv[j]>0.0:
+            #print(rcosm)
+            if rnpv[j]+dt*drnpv[j]>0.0 and rnpv[j]+dt*drnpv[j]<rcosm-rcosmtol:
                 ###Predictor###
-                signpv[j]=sigv0
+                signpv[j+1]=sigv0
                 rnpv[j+1]=rnpv[j]+dt*drnpv[j]
                 drnpv[j+1]=drnpv[j]+dt*Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])
                 drnpu[j+1]=drnpu[j]+dt*Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)
                 dphinpu[j+1]=dphinpu[j]+dt*Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j]) 
+                dsignpu[j+1]=dsignpu[j]+dt*Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q) 
                 
-                dsignpu[j+1]=dsignpu[j]+dt*Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)        
                 ###Corrector###           
-                signpv[j]=sigv0
+                signpv[j+1]=sigv0
                 rnpv[j+1]=rnpv[j]+1/2*dt*(drnpv[j]+drnpv[j+1])
                 drnpv[j+1]=drnpv[j]+1/2*dt*(Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])+Coneq(drnpv[j+1],dsignpv[j+1],dphinpv[j+1],rnpv[j+1]))
                 drnpu[j+1]=drnpu[j]+1/2*dt*(Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)+Rfunc(drnpv[j+1],drnpu[j+1],rnpv[j+1],signpv[j+1],Q,Lambda))
                 dphinpu[j+1]=dphinpu[j]+1/2*dt*(Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j])+Phifunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1]))                     
-                
                 dsignpu[j+1]=dsignpu[j]+1/2*dt*(Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)+Sigfunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1],signpv[j+1],Q))
                 
                 massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1])*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
+                rcosm=rc(massnpv[j+1],Q,Lambda)
+                #print(rcosm)
             else:
                 break
-        
+            
         print("Using Standard Coordinates Along V") 
             
     #######
@@ -157,6 +174,9 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,dataty
     drnpu=drnpu[::scal]
     drnpv=drnpv[::scal]
     massnpv=massnpv[::scal]
+    
+    print(rnpv,Nv)
+    
     
     
     #drnpu=None
