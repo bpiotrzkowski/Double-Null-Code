@@ -129,18 +129,71 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
     #######
     elif bdytype=="edd":
         
-        signpv[0]=mth.log(1.0-2.0*M0/ru0+Q**2.0/ru0**2.0)
+        #signpv[0]=mth.log(1.0-2.0*M0/ru0+Q**2.0/ru0**2.0)
         
-        dsignpv[0]=0.0
+        #dsignpv[0]=0.0
+        #drnpv[0]=dr0v
+        
+        signpv[0]=np.log(1.0-2.0*M0/ru0+Q**2.0/ru0**2.0-Lambda*ru0**2/3)
+        
+        dsignpv[0]=2*(3*Q**2-3*M0*ru0+ru0**4*Lambda)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+ru0**3*Lambda)))*dr0v
         drnpv[0]=dr0v
-        
       
+        sigv0=0.0
+        if datatype==object:
+            sigv0=Decimal(0)
+        
+        #dsignpv[0]=0.0
+        
+        #dsignpv[:]=0.0
+        drnpu[0]=-1/(4*drnpv[0])*np.exp(signpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
+        dphinpu[0]=0.0
+        dphinpv[0]=0.0
+        dsignpu[0]=0.0
+        #signpv[0]=0.0
+        massnpv[0]=M0
+        
+        rcosm=rc(massnpv[0],Q,Lambda)
         for j in range(0,Nv*scal-1):
-            dsignpv[j+1]=dsignpv[j]
-            rnpv[j+1]=rnpv[j]+dt*drnpv[j]
-            signpv[j+1]=signpv[j]+dt*dsignpv[j]
-            drnpv[j+1]=drnpv[j]+dt*(drnpv[j]*dsignpv[j]-rnpv[j]*dphinpv[j]**2.0)
-        print("Using Eddington Coordinates Along U")  
+            
+            #print(rcosm)
+            if rnpv[j]+dt*drnpv[j]>0.0 and rnpv[j]+dt*drnpv[j]<rcosm-rcosmtol:
+                ###Predictor###
+                
+                rnpv[j+1]=rnpv[j]+dt*drnpv[j]
+                drnpv[j+1]=drnpv[j]+dt*Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])
+                drnpu[j+1]=drnpu[j]+dt*Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)
+                dphinpu[j+1]=dphinpu[j]+dt*Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j]) 
+                dsignpu[j+1]=dsignpu[j]+dt*Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q) 
+                ###
+                signpv[j+1]=signpv[j]+dt*dsignpv[j]
+                
+                massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
+                
+                #signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
+                dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+                
+                ###Corrector###           
+                #signpv[j+1]=sigv0
+                rnpv[j+1]=rnpv[j]+1/2*dt*(drnpv[j]+drnpv[j+1])
+                drnpv[j+1]=drnpv[j]+1/2*dt*(Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])+Coneq(drnpv[j+1],dsignpv[j+1],dphinpv[j+1],rnpv[j+1]))
+                drnpu[j+1]=drnpu[j]+1/2*dt*(Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)+Rfunc(drnpv[j+1],drnpu[j+1],rnpv[j+1],signpv[j+1],Q,Lambda))
+                dphinpu[j+1]=dphinpu[j]+1/2*dt*(Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j])+Phifunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1]))                     
+                dsignpu[j+1]=dsignpu[j]+1/2*dt*(Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q)+Sigfunc(drnpv[j+1],drnpu[j+1],dphinpu[j+1],dphinpv[j+1],rnpv[j+1],signpv[j+1],Q))
+                ###
+                signpv[j+1]=signpv[j]+1/2*dt*(dsignpv[j]+dsignpv[j+1])
+                
+                massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
+                
+                
+                #signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
+                dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+                
+                
+                rcosm=rc(massnpv[j+1],Q,Lambda)
+                #print(rcosm)
+            else:
+                break
         
     ########  
     elif bdytype=="fulledd":
