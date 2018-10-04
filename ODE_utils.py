@@ -139,7 +139,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
         dsignpv[0]=2*(3*Q**2-3*M0*ru0+ru0**4*Lambda)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+ru0**3*Lambda)))*dr0v
         drnpv[0]=dr0v
       
-        sigv0=0.0
+        #sigv0=0.0
         if datatype==object:
             sigv0=Decimal(0)
         
