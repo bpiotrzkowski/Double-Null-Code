@@ -163,15 +163,27 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
                 rnpv[j+1]=rnpv[j]+dt*drnpv[j]
                 drnpv[j+1]=drnpv[j]+dt*Coneq(drnpv[j],dsignpv[j],dphinpv[j],rnpv[j])
                 drnpu[j+1]=drnpu[j]+dt*Rfunc(drnpv[j],drnpu[j],rnpv[j],signpv[j],Q,Lambda)
+                
                 dphinpu[j+1]=dphinpu[j]+dt*Phifunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j]) 
                 dsignpu[j+1]=dsignpu[j]+dt*Sigfunc(drnpv[j],drnpu[j],dphinpu[j],dphinpv[j],rnpv[j],signpv[j],Q) 
                 ###
                 signpv[j+1]=signpv[j]+dt*dsignpv[j]
                 
+                
+                
                 massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
                 
-                #signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
-                dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+               
+                
+                
+                #dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+                signpv[j+1]=np.log(np.abs(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3))
+                
+                #massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
+                
+                
+                dsignpv[j+1]=2*((massnpv[j+1]*rnpv[j+1]-Q**2-1/3*Lambda*rnpv[j+1]**4)/(rnpv[j+1]**3-2*massnpv[j+1]*rnpv[j+1]**2+Q**2*rnpv[j+1]-Lambda/3*rnpv[j+1]**5))*drnpv[j+1]
+                
                 
                 ###Corrector###           
                 #signpv[j+1]=sigv0
@@ -183,12 +195,20 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
                 ###
                 signpv[j+1]=signpv[j]+1/2*dt*(dsignpv[j]+dsignpv[j+1])
                 
+                
+                
                 massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
                 
                 
-                #signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
-                dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
                 
+                
+                #dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+                signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
+                
+                #massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
+               
+                
+                dsignpv[j+1]=2*((massnpv[j+1]*rnpv[j+1]-Q**2-1/3*Lambda*rnpv[j+1]**4)/(rnpv[j+1]**3-2*massnpv[j+1]*rnpv[j+1]**2+Q**2*rnpv[j+1]-Lambda/3*rnpv[j+1]**5))*drnpv[j+1]
                 
                 rcosm=rc(massnpv[j+1],Q,Lambda)
                 #print(rcosm)
