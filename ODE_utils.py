@@ -68,8 +68,8 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
         #A=.115
         #A=.2
       
-        v1=1.0
-        v2=4.0
+        v1=40.0
+        v2=50.0
         v1n=int(v1*(Nv*scal)/vmax)
         v2n=int(v2*(Nv*scal)/vmax)
         
