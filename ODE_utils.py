@@ -28,7 +28,7 @@ def rc(M,Q,Lambda):
         rcosm=np.inf
     return rcosm
 
-def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmtol,datatype):
+def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmtol,datatype):
     
     
     if datatype==object:
@@ -61,15 +61,15 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
     
     rnpv[0]=ru0 
     drnpv[0]=dr0v
-    
+    #Nv=Nv*scal
    
     
     if scalarfield==True:
         #A=.115
         #A=.2
       
-        v1=40.0
-        v2=50.0
+        v1=1.0
+        v2=2.0
         v1n=int(v1*(Nv*scal)/vmax)
         v2n=int(v2*(Nv*scal)/vmax)
         
@@ -93,8 +93,12 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
         drnpu[0]=-1/(4*drnpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
         dphinpu[0]=0.0
         dphinpv[0]=0.0
-        dsignpu[0]=0.0
         signpv[0]=0.0
+        if ubdytype=="stan":
+            dsignpu[0]=0.0
+        elif ubdytype=="adapt":
+            dsignpu[0]=-(0-np.log(dr0v)+3/2*np.log(2))
+        
         massnpv[0]=M0
         
         rcosm=rc(massnpv[0],Q,Lambda)
@@ -149,7 +153,10 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
         drnpu[0]=-1/(4*drnpv[0])*np.exp(signpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
         dphinpu[0]=0.0
         dphinpv[0]=0.0
-        dsignpu[0]=0.0
+        if ubdytype=="stan":
+            dsignpu[0]=0.0
+        elif ubdytype=="adapt":
+            dsignpu[0]=-(-1/2*np.log(2)-np.log(dr0v)+3/2*np.log(2))
         #signpv[0]=0.0
         massnpv[0]=M0
         
@@ -235,7 +242,7 @@ def boundaryv(scal,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield,A,rcosmt
             
         print("Using Full Eddington Coordinates")
         
-           
+    print(Nv)      
     
     rnpv=rnpv[::scal]
     signpv=signpv[::scal]
