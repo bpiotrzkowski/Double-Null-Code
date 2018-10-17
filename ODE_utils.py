@@ -97,7 +97,7 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
         if ubdytype=="stan":
             dsignpu[0]=0.0
         elif ubdytype=="adapt":
-            dsignpu[0]=-(0-np.log(dr0v)+3/2*np.log(2))
+            dsignpu[0]=0.0#-(0-np.log(dr0v)+3/2*np.log(2))
         
         massnpv[0]=M0
         
@@ -152,11 +152,11 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
         #dsignpv[:]=0.0
         drnpu[0]=-1/(4*drnpv[0])*np.exp(signpv[0])*(1-2*M0/rnpv[0]+(Q/rnpv[0])**2-Lambda*rnpv[0]**2/3)
         dphinpu[0]=0.0
-        dphinpv[0]=0.0
+        #dphinpv[0]=0.0
         if ubdytype=="stan":
             dsignpu[0]=0.0
         elif ubdytype=="adapt":
-            dsignpu[0]=-(-1/2*np.log(2)-np.log(dr0v)+3/2*np.log(2))
+            dsignpu[0]=0.0#-(-1/2*np.log(2)-np.log(dr0v)+3/2*np.log(2))
         #signpv[0]=0.0
         massnpv[0]=M0
         
