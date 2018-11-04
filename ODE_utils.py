@@ -69,7 +69,7 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
         #A=.2
       
         v1=1.0
-        v2=2.0
+        v2=10.0
         v1n=int(v1*(Nv*scal)/vmax)
         v2n=int(v2*(Nv*scal)/vmax)
         
@@ -142,7 +142,7 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
         
         dsignpv[0]=2*(3*Q**2-3*M0*ru0+ru0**4*Lambda)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+ru0**3*Lambda)))*dr0v
         drnpv[0]=dr0v
-      
+        print('dr/dv is '+str(drnpv[0]))
         #sigv0=0.0
         if datatype==object:
             sigv0=Decimal(0)
@@ -157,6 +157,9 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
             dsignpu[0]=0.0
         elif ubdytype=="adapt":
             dsignpu[0]=0.0#-(-1/2*np.log(2)-np.log(dr0v)+3/2*np.log(2))
+        elif ubdytype=="edd":
+            dsignpu[0]=2*(3*Q**2-3*M0*ru0+Lambda*ru0**4)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+Lambda*ru0**3)))*drnpu[0]
+            print("Using Full Eddington Coordinates")
         #signpv[0]=0.0
         massnpv[0]=M0
         
@@ -183,13 +186,13 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
                
                 
                 
-                #dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
-                signpv[j+1]=np.log(np.abs(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3))
+                dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+                #signpv[j+1]=np.log(np.abs(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3))
                 
                 #massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
                 
                 
-                dsignpv[j+1]=2*((massnpv[j+1]*rnpv[j+1]-Q**2-1/3*Lambda*rnpv[j+1]**4)/(rnpv[j+1]**3-2*massnpv[j+1]*rnpv[j+1]**2+Q**2*rnpv[j+1]-Lambda/3*rnpv[j+1]**5))*drnpv[j+1]
+                #dsignpv[j+1]=2*((massnpv[j+1]*rnpv[j+1]-Q**2-1/3*Lambda*rnpv[j+1]**4)/(rnpv[j+1]**3-2*massnpv[j+1]*rnpv[j+1]**2+Q**2*rnpv[j+1]-Lambda/3*rnpv[j+1]**5))*drnpv[j+1]
                 
                 
                 ###Corrector###           
@@ -209,40 +212,22 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
                 
                 
                 
-                #dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
-                signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
+                dsignpv[j+1]=2*(3*Q**2-3*massnpv[j+1]*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*massnpv[j+1]-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
+                #signpv[j+1]=np.log(1.0-2.0*massnpv[j+1]/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0-Lambda*rnpv[j+1]**2/3)
                 
                 #massnpv[j+1]=(1+4.0*drnpu[j+1]*drnpv[j+1]*np.exp(-signpv[j+1]))*rnpv[j+1]/2.0+Q**2.0/(2*rnpv[j+1])-Lambda*rnpv[j+1]**3.0/6.0
                
                 
-                dsignpv[j+1]=2*((massnpv[j+1]*rnpv[j+1]-Q**2-1/3*Lambda*rnpv[j+1]**4)/(rnpv[j+1]**3-2*massnpv[j+1]*rnpv[j+1]**2+Q**2*rnpv[j+1]-Lambda/3*rnpv[j+1]**5))*drnpv[j+1]
+                #dsignpv[j+1]=2*((massnpv[j+1]*rnpv[j+1]-Q**2-1/3*Lambda*rnpv[j+1]**4)/(rnpv[j+1]**3-2*massnpv[j+1]*rnpv[j+1]**2+Q**2*rnpv[j+1]-Lambda/3*rnpv[j+1]**5))*drnpv[j+1]
                 
                 rcosm=rc(massnpv[j+1],Q,Lambda)
                 #print(rcosm)
             else:
                 break
+       
         
-    ########  
-    elif bdytype=="fulledd":
         
-        signpv[0]=np.log(1.0-2.0*M0/ru0+Q**2.0/ru0**2.0-Lambda*ru0**2/3)
-        
-        dsignpv[0]=2*(3*Q**2-3*M0*ru0+ru0**4*Lambda)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+ru0**3*Lambda)))*dr0v
-        drnpv[0]=dr0v
-        
-      
-        for j in range(0,Nv*scal-1):
-            rnpv[j+1]=rnpv[j]+dt*drnpv[j]
-            #signpv[j+1]=signpv[j]+dt*dsignpv[j]
-            signpv[j+1]=np.log(1.0-2.0*M0/rnpv[j+1]+Q**2.0/rnpv[j+1]**2.0)
-            drnpv[j+1]=drnpv[j]+dt*(drnpv[j]*dsignpv[j]-rnpv[j]*dphinpv[j]**2.0)  
-            dsignpv[j+1]=2*(3*Q**2-3*M0*rnpv[j+1]+rnpv[j+1]**4*Lambda)/(rnpv[j+1]*(-3*Q**2+rnpv[j+1]*(6*M0-3*rnpv[j+1]+rnpv[j+1]**3*Lambda)))*drnpv[j+1]
-            #print(dsignpv[j+1])
-            
-            
-        print("Using Full Eddington Coordinates")
-        
-    print(Nv)      
+    #print(Nv)      
     
     rnpv=rnpv[::scal]
     signpv=signpv[::scal]
@@ -255,7 +240,7 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
     drnpv=drnpv[::scal]
     massnpv=massnpv[::scal]
     
-    print(rnpv,Nv)
+    #print(rnpv,Nv)
     
     
     
@@ -281,6 +266,9 @@ def Phifunc(drnpvf,drnpuf,dphinpuf,dphinpvf,rnpf):
 
 def Coneq(drnpf,dsignpf,dphinpf,rnpf):
     return drnpf*dsignpf-rnpf*np.power(dphinpf,2.0)
+
+def Kretsch(r,drdv,drdu,dphidv,dphidu,m,Q,Lambda):
+    return 16/r**6.0*((m-3*Q**2/(2*r)+Lambda/6*r**3)+r/2*(1-2*m/r+Q**2.0/r**2.0-Lambda/3*r**2.0)*(r*dphidu/drdu)*(r*dphidv/drdv))**2.0+16/r**6*(m-Q**2.0/(2*r)+Lambda*r**3/6)+16/r**6*(m-Q**2/r-r**3/3*Lambda)**2+4/r**4*(1-2*m/r+Q**2/r**2-Lambda/3*r**2)**2*(r*dphidu/drdu)**2*(r*dphidv/drdv)**2
 
 
 def interp(i,array,urange,du):
