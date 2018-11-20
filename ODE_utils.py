@@ -156,7 +156,7 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
         if ubdytype=="stan":
             dsignpu[0]=0.0
         elif ubdytype=="adapt":
-            dsignpu[0]=0.0#-(-1/2*np.log(2)-np.log(dr0v)+3/2*np.log(2))
+            dsignpu[0]=-(-1/2*np.log(2)-np.log(dr0v)+3/2*np.log(2))
         elif ubdytype=="edd":
             dsignpu[0]=2*(3*Q**2-3*M0*ru0+Lambda*ru0**4)/(ru0*(-3*Q**2+ru0*(6*M0-3*ru0+Lambda*ru0**3)))*drnpu[0]
             print("Using Full Eddington Coordinates")
@@ -255,6 +255,10 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
 
 
 #########ODE functions###############
+def trapint(array):
+    return 0.5*(np.cumsum(np.roll(array,1)+array)-(np.roll(array,1)+array)[0])
+
+
 def Rfunc(drnpvf,drnpuf,rnpf,signpf,Q,Lambda):
     return -drnpvf*drnpuf/rnpf-np.exp(signpf)/(4.0*rnpf)*(1.0-np.power((Q/rnpf),2.0)-Lambda*np.power(rnpf,2.0))
 
