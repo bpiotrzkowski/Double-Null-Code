@@ -13,6 +13,7 @@ import numpy as np
 import math as mth
 #from mpmath import *
 from decimal import *
+#import scipy
 from scipy import interpolate
 from scipy import optimize
 
@@ -67,19 +68,37 @@ def boundaryv(scal,ubdytype,bdytype,Nv,ru0,dr0v,dv0,vmax,M0,Q,Lambda,scalarfield
     if scalarfield==True:
         #A=.115
         #A=.2
-      
-        v1=1.0
-        v2=10.0
-        v1n=int(v1*(Nv*scal)/vmax)
-        v2n=int(v2*(Nv*scal)/vmax)
+        scalarfieldtype='pulse'#'power'
+        if scalarfieldtype=='pulse':
+            v1=1.0
+            v2=5.0
+            v1n=int(v1*(Nv*scal)/vmax)
+            v2n=int(v2*(Nv*scal)/vmax)
         
        
-        for j in range(v1n,v2n):
-                #dsignpv[i]=0.0
-            v=j/(Nv*scal)*vmax
-            dphinpv[j]=192*A*(v-v1)**2.0*(v-v2)**2.0*(-2*v+v1+v2)/(v1-v2)**6.0
-            phinpv[j]=A*64*(v-v1)**3.0*(v2-v)**3.0/(v2-v1)**6.0
-   
+            for j in range(v1n,v2n):
+                    #dsignpv[i]=0.0
+                v=j/(Nv*scal)*vmax
+                dphinpv[j]=192*A*(v-v1)**2.0*(v-v2)**2.0*(-2*v+v1+v2)/(v1-v2)**6.0
+                phinpv[j]=A*64*(v-v1)**3.0*(v2-v)**3.0/(v2-v1)**6.0
+        
+        if scalarfieldtype=='power':
+            v1=1
+            v2=vmax
+            power=-1
+            v1n=int(v1*(Nv*scal)/vmax)
+            v2n=int(v2*(Nv*scal)/vmax)
+
+
+            for j in range(v1n,v2n):
+                    #dsignpv[i]=0.0
+                v=j/(Nv*scal)*vmax
+                #try:
+                dphinpv[j]=A*((v)**power*np.cosh(v-v1)**(-2.0)+power*(v)**(power-1)*np.tanh(v-v1))
+                phinpv[j]=A*np.tanh(v-v1)*v**power
+                #except:
+                    #phinpv[j]=0.0
+                    #phinpv[j]=0.0
 
     if bdytype=="stan" or bdytype=="max" or bdytype=="hor":
     
@@ -288,3 +307,23 @@ def interp(i,array,urange,du):
         y=[array[i],array[i+1]]
         value=(y[0]+y[1])/2
     return value
+
+#######
+def drdvparam(x,y):
+    
+    def func(x,p,a):
+        return p*np.log(x)+a     #A*x**p+b
+    
+    result,result2=optimize.curve_fit(func,x,y)
+    
+    return result
+
+def massparam(x,y):
+      
+    def func(x,a,b,c):
+        return a*x+b*np.log(x)+c#A*np.exp(a*x)*x**b
+    
+    result,result2=optimize.curve_fit(func,x,y)
+    
+    return result
+    
